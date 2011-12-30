@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Web GL Demo</title>
+
+    <script src="sylvester.js"></script>
+    <script src="glUtils.js"></script>
+    <script src="demo.js"></script>
+</head>
+<body>
+    <canvas id="c" width="640" height="480"></canvas>
+
+<script id="shader-vs" type="x-shader/x-vertex">
+    attribute vec3 aVertexPosition;
+    attribute vec4 aVertexColor;
+    //attribute vec2 aTextureCoord;
+
+    uniform mat4 uVMatrix;
+    uniform mat4 uWMatrix;
+    uniform mat4 uPMatrix;
+
+    varying lowp vec4 vColor;
+    //varing lowp vec2 vTextureCoord;
+
+    void main(void) {
+        gl_Position = uPMatrix * uVMatrix * uWMatrix * vec4(aVertexPosition, 1.0);
+        vColor = aVertexColor;
+        //vTextureCoord = aTextureCoord;
+    }
+</script>
+
+<script id="shader-fs" type="x-shader/x-fragment">
+    //uniform sampler2D uSampler;
+
+    varying lowp vec4 vColor;
+    //varing lowp vec2 vTextureCoord;
+
+    void main(void) {
+        gl_FragColor = vColor;
+        //gl_FragColor = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord,t));
+    }
+</script>
+</body>
+</html>
