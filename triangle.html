@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Web GL Demo - Triangle</title>
+    <meta charset="utf-8" />
+
+    <style>
+    #c { border: 2px solid red; }
+    </style>
+
+    <script src="lib/vect-mat.js"></script>
+    <script src="lib/gl-util.js"></script>
+</head>
+<body>
+    <canvas id="c" width="400" height="400"></canvas>
+
+    <script>
+        var c = document.getElementById('c'),
+            gl = c.getContext('experimental-webgl');
+
+        //gl.clearColor(0.0, 0.0, 0.6, 1.0);
+        //gl.clear(gl.COLOR_BUFFER_BIT);
+
+        var vertexPosBuffer, vertices;
+
+        // step1. 创建buffer
+        vertexPosBuffer = gl.createBuffer();
+        // step2. bind刚创建的buffer,以便使用
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexPosBuffer);
+        // step3. 向buffer填充数据
+		/*  2
+		   /\
+		  /  \
+		0/____\1
+		*/
+        vertices = [
+            -1.0, -1.0, -1.0, 
+            1.0, -1.0, -1.0, 
+            0.0, 1.0, 1.0
+        ];
+        // -1.0 <= x <= 1.0
+        // -1.0 <= y <= 1.0
+        // -1.0 <= z <= 1.0
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+
+        var vs, fs, program;
+
+        // shader代码
+        vs = 'attribute vec3 pos; void main() { gl_Position = vec4(pos, 1.0); }';
+        fs = 'precision mediump float; void main() { gl_FragColor = vec4(0.0, 0.8, 0.0, 1.0); }';
+
+        // step1. 创建program
+        program = createProgram(vs, fs);
+        // step2. 使用该program
+        gl.useProgram(program);
+
+        program.vertexPosAttrib = gl.getAttribLocation(program, 'pos');
+        gl.enableVertexAttribArray(program.vertexPosAttrib);
+        //gl.bindBuffer(gl.ARRAY_BUFFER, vertexPosBuffer);
+        gl.vertexAttribPointer(program.vertexPosAttrib, 3, gl.FLOAT, false, 0, 0);
+
+        // draw
+        gl.drawArrays(gl.TRIANGLES, 0, 3);
+    </script>
+</body>
+</html>

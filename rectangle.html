@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Web GL Demo - Rectangle</title>
+    <meta charset="utf-8" />
+
+    <style>
+    #c { border: 2px solid red; }
+    </style>
+
+    <script src="lib/vect-mat.js"></script>
+    <script src="lib/gl-util.js"></script>
+</head>
+<body>
+    <canvas id="c" width="400" height="400"></canvas>
+
+    <script id="shader-vs" type="x-shader/vertex">
+        attribute vec3 aVertexPosition;
+        varying vec3 vTexCoord;
+        uniform vec3 uOffset;
+
+        void main() {
+            gl_Position = vec4(aVertexPosition, 1.0);
+            vTexCoord = aVertexPosition + uOffset;
+        }
+    </script>
+
+    <script id="shader-fs" type="x-shader/fragment">
+        precision mediump float;
+
+        varying vec3 vTexCoord;
+
+        void main() {
+            gl_FragColor = vec4(vTexCoord, 0.9);
+        }
+    </script>
+
+    <script>
+        var c = document.getElementById('c'),
+            gl = c.getContext('experimental-webgl');
+
+        //gl.clearColor(0.0, 0.0, 0.6, 1.0);
+        //gl.clear(gl.COLOR_BUFFER_BIT);
+
+        var vertexPosBuffer, vertices;
+
+        // step1. 创建buffer
+        vertexPosBuffer = gl.createBuffer();
+        // step2. bind刚创建的buffer,以便使用
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexPosBuffer);
+        // step3. 向buffer填充数据
+        /*
+        2--3
+        |\ |
+        | \|
+        0--1
+        */
+        vertices = [
+            -1.0, -1.0, 0.0, 
+            1.0, -1.0, 0.0, 
+            -1.0, 1.0, 0.0,
+            1.0, 1.0, 0.0
+        ];
+        // -1.0 <= x <= 1.0
+        // -1.0 <= y <= 1.0
+        // -1.0 <= z <= 1.0
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+
+        var vs, fs, program,
+            offset = [1.0, 1.0, 0.0];
+
+        // shader 代码
+        vs = document.getElementById('shader-vs').textContent;
+        fs = document.getElementById('shader-fs').textContent;
+
+        // step1. 创建program
+        program = createProgram(vs, fs);
+        // step2. 使用该program
+        gl.useProgram(program);
+
+        // 用上面bind的buffer,向shader传递attribute数据
+        /* note: (http://stackoverflow.com/questions/3665671/is-vertexattribpointer-needed-after-each-bindbuffer)
+           you can bind multiple buffers to different attributes.
+           say attribute 0 uses buffer 1, while attribute 1 and 2 use buffer 2).
+           it may look like somthing as:
+            glBindBuffer(GL_ARRAY_BUFFER, 1);
+            glVertexAttribPointer(0, ...)
+
+            glBindBuffer(GL_ARRAY_BUFFER, 2);
+            glVertexAttribPointer(1, ...)
+            glVertexAttribPointer(2, ...)
+
+            glDraw*(...)
+         */
+        program.vertexPosAttrib = gl.getAttribLocation(program, 'aVertexPosition');
+        gl.enableVertexAttribArray(program.vertexPosAttrib);
+        gl.vertexAttribPointer(program.vertexPosAttrib, 3, gl.FLOAT, false, 0, 0);
+
+        // 向shader传递uniform数据
+        program.offsetUniform = gl.getUniformLocation(program, 'uOffset');
+        gl.uniform3f(program.offsetUniform, offset[0], offset[1], offset[2]);
+
+        // draw
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+        /*note:
+          这里设置uOffset为1,1,0.传入fragment shader的vTexCoord是aVertexPosition+uOffset
+          然后将这个vTexCoord赋给gl_FragColor.
+          则最终各个vertex的颜色会是：
+          (0,2,0,1)2--3(2,2,0,1)
+                   |\ |
+                   | \|
+          (0,0,0,1)0--1(2,0,0,1)
+          按r,g,b,a来理解,则0->黑色,1->红色,2->绿色,3->黄色
+          然后真正的像素颜色,会以这4个顶点的颜色进行插值后得到
+         */
+    </script>
+</body>
+</html>

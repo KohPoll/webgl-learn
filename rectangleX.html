@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Web GL Demo - TriangleX</title>
+    <meta charset="utf-8" />
+
+    <style>
+    #c { border: 2px solid red; }
+    </style>
+
+    <script src="lib/vect-mat.js"></script>
+    <script src="lib/gl-util.js"></script>
+</head>
+<body>
+    <canvas id="c" width="400" height="400"></canvas>
+
+    <script id="shader-vs" type="x-shader/vs">
+        attribute vec3 aVertexPos; 
+        attribute vec3 aVertexColor; 
+        
+        varying vec3 vVertexColor; 
+        
+        void main() { 
+            gl_Position = vec4(aVertexPos, 1.0); 
+            vVertexColor = aVertexColor; 
+        }
+    </script>
+
+    <script id="shader-fs" type="x-shader/fs">
+        precision mediump float; 
+        
+        varying vec3 vVertexColor; 
+        
+        void main() { 
+            gl_FragColor = vec4(vVertexColor, 1.0); 
+        }
+    </script>
+
+    <script>
+        var c = document.getElementById('c'),
+            gl = c.getContext('experimental-webgl');
+
+        var vertexPosBuffer, vertices,
+            vertexColorBuffer, verticesColor;
+
+        // step1. 创建buffer
+        vertexPosBuffer = gl.createBuffer();
+        // step2. bind刚创建的buffer,以便使用
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexPosBuffer);
+        // step3. 向buffer填充数据
+        /*
+        2--3
+        |\ |
+        | \|
+        0--1
+		*/
+        vertices = [
+            -0.5, -0.5,  0.0,
+            0.5, -0.5,  0.0,
+            -0.5,  0.5,  0.0,
+            0.5,  0.5,  0.0
+        ];
+        // -1.0 <= x <= 1.0
+        // -1.0 <= y <= 1.0
+        // -1.0 <= z <= 1.0
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+
+        // step1. 创建buffer
+        vertexColorBuffer = gl.createBuffer();
+        // step2. bind刚创建的buffer,以便使用
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexColorBuffer);
+        // step3. 向buffer填充数据
+        verticesColor = [
+            1.0, 0.0, 0.0,
+            0.0, 1.0, 0.0,
+            0.0, 0.0, 1.0,
+            0.0, 0.0, 0.0
+        ];
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(verticesColor), gl.STATIC_DRAW);
+
+        var vs, fs, program;
+
+        // shader代码
+        vs = document.getElementById('shader-vs').textContent;
+        fs = document.getElementById('shader-fs').textContent;
+
+        // step1. 创建program
+        program = createProgram(vs, fs);
+        // step2. 使用该program
+        gl.useProgram(program);
+
+        /* note: (http://stackoverflow.com/questions/3665671/is-vertexattribpointer-needed-after-each-bindbuffer)
+           you can bind multiple buffers to different attributes.
+           say attribute 0 uses buffer 1, while attribute 1 and 2 use buffer 2).
+           it may look like somthing as:
+            glBindBuffer(GL_ARRAY_BUFFER, 1);
+            glVertexAttribPointer(0, ...)
+
+            glBindBuffer(GL_ARRAY_BUFFER, 2);
+            glVertexAttribPointer(1, ...)
+            glVertexAttribPointer(2, ...)
+
+            glDraw*(...)
+         */
+
+        // 用bind的buffer,向shader传递attribute数据(点位置)
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexPosBuffer);
+        program.vertexPosAttrib = gl.getAttribLocation(program, 'aVertexPos');
+        gl.enableVertexAttribArray(program.vertexPosAttrib);
+        gl.vertexAttribPointer(program.vertexPosAttrib, 3, gl.FLOAT, false, 0, 0);
+
+        // 用bind的buffer,向shader传递attribute数据(点颜色)
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexColorBuffer);
+        program.vertexColorAttrib = gl.getAttribLocation(program, 'aVertexColor');
+        gl.enableVertexAttribArray(program.vertexColorAttrib);
+        gl.vertexAttribPointer(program.vertexColorAttrib, 3, gl.FLOAT, false, 0, 0);
+
+        // 绘制
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    </script>
+</body>
+</html>
