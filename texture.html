@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Web GL Demo - Texture</title>
+    <meta charset="utf-8" />
+
+    <style>
+    #c { border: 2px solid red; }
+    </style>
+
+    <script src="lib/vect-mat.js"></script>
+    <script src="lib/gl-util.js"></script>
+</head>
+<body>
+    <canvas id="c" width="400" height="400"></canvas>
+
+    <script id="shader-vs" type="x-shader/vertex">
+        attribute vec2 aVertexPosition;
+        attribute vec2 aTexCoord;
+
+        varying vec2 vTexCoord;
+
+        void main() {
+            gl_Position = vec4(aVertexPosition, 0.0, 1.0);
+            vTexCoord = aTexCoord;
+        }
+    </script>
+
+    <script id="shader-fs" type="x-shader/fragment">
+        precision mediump float;
+
+        uniform sampler2D uSampler;
+
+        varying vec2 vTexCoord;
+
+        void main() {
+            gl_FragColor = texture2D(uSampler, vec2(vTexCoord.s, vTexCoord.t));
+            //gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+        }
+    </script>
+
+    <script>
+        var c = document.getElementById('c'),
+            gl = c.getContext('experimental-webgl');
+
+        //gl.clearColor(0.0, 0.0, 0.6, 1.0);
+        //gl.clear(gl.COLOR_BUFFER_BIT);
+
+        // buffer
+        var vertexPosBuffer, vertices,
+            texCoordBuffer, texCoord;
+
+        /*
+        2--3
+        |\ |
+        | \|
+        0--1
+        */
+        vertices = [
+            -0.5, -0.5,
+            0.5, -0.5, 
+            -0.5, 0.5,
+            0.5, 0.5
+        ];
+        // -1.0 <= x <= 1.0
+        // -1.0 <= y <= 1.0
+        // -1.0 <= z <= 1.0
+        vertexPosBuffer = createBuffer(vertices);
+
+        texCoord = [
+            0.0, 0.0,
+            1.0, 0.0,
+            0.0, 1.0,
+            1.0, 1.0
+        ];
+        texCoordBuffer = createBuffer(texCoord);
+
+        var vs, fs, program;
+
+        // shader
+        vs = document.getElementById('shader-vs').textContent;
+        fs = document.getElementById('shader-fs').textContent;
+
+        // program
+        program = createProgram(vs, fs);
+        gl.useProgram(program);
+
+        var texture, img;
+
+        // step1. 创建texture
+        texture = gl.createTexture();
+        // step2. 加载图片
+        img = new Image();
+        img.onload = function () {
+            // 用bind的buffer,向shader传递attribute数据(点位置)
+            gl.bindBuffer(gl.ARRAY_BUFFER, vertexPosBuffer);
+            program.vertexPosAttrib = gl.getAttribLocation(program, 'aVertexPosition');
+            gl.enableVertexAttribArray(program.vertexPosAttrib);
+            gl.vertexAttribPointer(program.vertexPosAttrib, 2, gl.FLOAT, false, 0, 0);
+
+            // 用bind的buffer,向shader传递attribute数据(贴图坐标)
+            gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
+            program.texCoordAttrib = gl.getAttribLocation(program, 'aTexCoord');
+            gl.enableVertexAttribArray(program.texCoordAttrib);
+            gl.vertexAttribPointer(program.texCoordAttrib, 2, gl.FLOAT, false, 0, 0);
+
+            // 向shader传递uniform数据
+            program.samplerUniform = gl.getUniformLocation(program, 'uSampler');
+			gl.uniform1i(program.samplerUniform, 0);
+
+            // step3. 激活texture,绑定texture
+			gl.activeTexture(gl.TEXTURE0);
+			gl.bindTexture(gl.TEXTURE_2D, texture);
+
+            // step4. 设置texture的像素数据的对齐方式(align type of pixel data in byte order) 
+			gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+
+            // step5. 设置texture参数
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
+
+			// gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+			// gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+			// gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+			// gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+            // step5. 传送texture到显存(upload texture to video memory)
+			gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+
+            // draw
+			gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+            img.onload = null;
+        };
+        img.src = 'texture/nehe.gif';
+
+    </script>
+</body>
+</html>

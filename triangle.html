@@ -21,13 +21,9 @@
         //gl.clearColor(0.0, 0.0, 0.6, 1.0);
         //gl.clear(gl.COLOR_BUFFER_BIT);
 
+        // buffer
         var vertexPosBuffer, vertices;
 
-        // step1. 创建buffer
-        vertexPosBuffer = gl.createBuffer();
-        // step2. bind刚创建的buffer,以便使用
-        gl.bindBuffer(gl.ARRAY_BUFFER, vertexPosBuffer);
-        // step3. 向buffer填充数据
 		/*  2
 		   /\
 		  /  \
@@ -41,22 +37,22 @@
         // -1.0 <= x <= 1.0
         // -1.0 <= y <= 1.0
         // -1.0 <= z <= 1.0
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+        vertexPosBuffer = createBuffer(vertices);
 
         var vs, fs, program;
 
-        // shader代码
+        // shader
         vs = 'attribute vec3 pos; void main() { gl_Position = vec4(pos, 1.0); }';
         fs = 'precision mediump float; void main() { gl_FragColor = vec4(0.0, 0.8, 0.0, 1.0); }';
 
-        // step1. 创建program
+        // program
         program = createProgram(vs, fs);
-        // step2. 使用该program
         gl.useProgram(program);
 
+        // 用bind的buffer向shadaer传递数据(点位置)
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexPosBuffer);
         program.vertexPosAttrib = gl.getAttribLocation(program, 'pos');
         gl.enableVertexAttribArray(program.vertexPosAttrib);
-        //gl.bindBuffer(gl.ARRAY_BUFFER, vertexPosBuffer);
         gl.vertexAttribPointer(program.vertexPosAttrib, 3, gl.FLOAT, false, 0, 0);
 
         // draw

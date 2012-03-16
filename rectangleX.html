@@ -40,14 +40,10 @@
         var c = document.getElementById('c'),
             gl = c.getContext('experimental-webgl');
 
+        // buffer
         var vertexPosBuffer, vertices,
             vertexColorBuffer, verticesColor;
 
-        // step1. 创建buffer
-        vertexPosBuffer = gl.createBuffer();
-        // step2. bind刚创建的buffer,以便使用
-        gl.bindBuffer(gl.ARRAY_BUFFER, vertexPosBuffer);
-        // step3. 向buffer填充数据
         /*
         2--3
         |\ |
@@ -63,30 +59,25 @@
         // -1.0 <= x <= 1.0
         // -1.0 <= y <= 1.0
         // -1.0 <= z <= 1.0
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+        vertexPosBuffer = createBuffer(vertices);
 
-        // step1. 创建buffer
-        vertexColorBuffer = gl.createBuffer();
-        // step2. bind刚创建的buffer,以便使用
-        gl.bindBuffer(gl.ARRAY_BUFFER, vertexColorBuffer);
-        // step3. 向buffer填充数据
+        // r,g,b
         verticesColor = [
             1.0, 0.0, 0.0,
             0.0, 1.0, 0.0,
             0.0, 0.0, 1.0,
             0.0, 0.0, 0.0
         ];
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(verticesColor), gl.STATIC_DRAW);
+        vertexColorBuffer = createBuffer(verticesColor);
 
         var vs, fs, program;
 
-        // shader代码
+        // shader
         vs = document.getElementById('shader-vs').textContent;
         fs = document.getElementById('shader-fs').textContent;
 
-        // step1. 创建program
+        // program
         program = createProgram(vs, fs);
-        // step2. 使用该program
         gl.useProgram(program);
 
         /* note: (http://stackoverflow.com/questions/3665671/is-vertexattribpointer-needed-after-each-bindbuffer)
@@ -115,7 +106,7 @@
         gl.enableVertexAttribArray(program.vertexColorAttrib);
         gl.vertexAttribPointer(program.vertexColorAttrib, 3, gl.FLOAT, false, 0, 0);
 
-        // 绘制
+        // draw
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     </script>
 </body>

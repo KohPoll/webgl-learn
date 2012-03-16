@@ -42,13 +42,9 @@
         //gl.clearColor(0.0, 0.0, 0.6, 1.0);
         //gl.clear(gl.COLOR_BUFFER_BIT);
 
+        // buffer
         var vertexPosBuffer, vertices;
 
-        // step1. 创建buffer
-        vertexPosBuffer = gl.createBuffer();
-        // step2. bind刚创建的buffer,以便使用
-        gl.bindBuffer(gl.ARRAY_BUFFER, vertexPosBuffer);
-        // step3. 向buffer填充数据
         /*
         2--3
         |\ |
@@ -64,21 +60,19 @@
         // -1.0 <= x <= 1.0
         // -1.0 <= y <= 1.0
         // -1.0 <= z <= 1.0
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+        vertexPosBuffer = createBuffer(vertices);
 
         var vs, fs, program,
             offset = [1.0, 1.0, 0.0];
 
-        // shader 代码
+        // shader
         vs = document.getElementById('shader-vs').textContent;
         fs = document.getElementById('shader-fs').textContent;
 
-        // step1. 创建program
+        // program
         program = createProgram(vs, fs);
-        // step2. 使用该program
         gl.useProgram(program);
 
-        // 用上面bind的buffer,向shader传递attribute数据
         /* note: (http://stackoverflow.com/questions/3665671/is-vertexattribpointer-needed-after-each-bindbuffer)
            you can bind multiple buffers to different attributes.
            say attribute 0 uses buffer 1, while attribute 1 and 2 use buffer 2).
@@ -92,6 +86,9 @@
 
             glDraw*(...)
          */
+
+        // 用bind的buffer,向shader传递attribute数据(点位置)
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexPosBuffer);
         program.vertexPosAttrib = gl.getAttribLocation(program, 'aVertexPosition');
         gl.enableVertexAttribArray(program.vertexPosAttrib);
         gl.vertexAttribPointer(program.vertexPosAttrib, 3, gl.FLOAT, false, 0, 0);
