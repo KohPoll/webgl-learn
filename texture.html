@@ -40,8 +40,7 @@
     </script>
 
     <script>
-        var c = document.getElementById('c'),
-            gl = c.getContext('experimental-webgl');
+        var glu = GLU('c'), gl = glu.gl();
 
         //gl.clearColor(0.0, 0.0, 0.6, 1.0);
         //gl.clear(gl.COLOR_BUFFER_BIT);
@@ -65,7 +64,7 @@
         // -1.0 <= x <= 1.0
         // -1.0 <= y <= 1.0
         // -1.0 <= z <= 1.0
-        vertexPosBuffer = createBuffer(vertices);
+        vertexPosBuffer = glu.createBuffer(vertices);
 
         texCoord = [
             0.0, 0.0,
@@ -73,7 +72,7 @@
             0.0, 1.0,
             1.0, 1.0
         ];
-        texCoordBuffer = createBuffer(texCoord);
+        texCoordBuffer = glu.createBuffer(texCoord);
 
         var vs, fs, program;
 
@@ -82,7 +81,7 @@
         fs = document.getElementById('shader-fs').textContent;
 
         // program
-        program = createProgram(vs, fs);
+        program = glu.createProgram(vs, fs);
         gl.useProgram(program);
 
         var texture, img;
@@ -128,6 +127,9 @@
 
             // step5. 传送texture到显存(upload texture to video memory)
 			gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+
+            // step6. 解绑
+            gl.bindTexture(gl.TEXTURE0, null);
 
             // draw
 			gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);

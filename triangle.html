@@ -15,8 +15,7 @@
     <canvas id="c" width="400" height="400"></canvas>
 
     <script>
-        var c = document.getElementById('c'),
-            gl = c.getContext('experimental-webgl');
+        var glu = GLU('c'), gl = glu.gl();
 
         //gl.clearColor(0.0, 0.0, 0.6, 1.0);
         //gl.clear(gl.COLOR_BUFFER_BIT);
@@ -37,7 +36,7 @@
         // -1.0 <= x <= 1.0
         // -1.0 <= y <= 1.0
         // -1.0 <= z <= 1.0
-        vertexPosBuffer = createBuffer(vertices);
+        vertexPosBuffer = glu.createBuffer(vertices);
 
         var vs, fs, program;
 
@@ -46,7 +45,7 @@
         fs = 'precision mediump float; void main() { gl_FragColor = vec4(0.0, 0.8, 0.0, 1.0); }';
 
         // program
-        program = createProgram(vs, fs);
+        program = glu.createProgram(vs, fs);
         gl.useProgram(program);
 
         // 用bind的buffer向shadaer传递数据(点位置)
